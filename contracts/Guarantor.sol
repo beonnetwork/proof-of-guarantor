@@ -72,14 +72,14 @@ contract Guarantor is Ownable{
     return confirmations[txhash].approved;
   }
 
-  function stake(uint256 amount) {
+  function stake(uint256 amount) onlyGuarantor {
     require(amount > stakeThreshold);  
     stakers.push(msg.sender);  
     stakes[msg.sender] = amount;
     emit Staked(msg.sender, amount);
   }
 
-  function challenge(bytes32 txhash) {
+  function challenge(bytes32 txhash) onlyGuarantor {
     require(challenges[txhash].start == false);
     require(challenges[txhash].end == false);
 
@@ -89,7 +89,7 @@ contract Guarantor is Ownable{
     emit ChallengeStarted(txhash);   
   }
 
-  function voteUp(bytes32 txhash) {
+  function voteUp(bytes32 txhash) onlyGuarantor {
     require(challenges[txhash].start == false);
     require(challenges[txhash].end == false);
     require(block.number < (challenges[txhash].blockNumber + challengePeriod));
@@ -107,7 +107,7 @@ contract Guarantor is Ownable{
     emit VotedUp(msg.sender, txhash);
   }
 
-  function voteDown(bytes32 txhash) {
+  function voteDown(bytes32 txhash) onlyGuarantor {
     require(challenges[txhash].start == false);
     require(challenges[txhash].end == false);
     require(block.number < (challenges[txhash].blockNumber + challengePeriod));
@@ -126,6 +126,8 @@ contract Guarantor is Ownable{
   }
 
   function finalizeChallenge(bytes32 txhash) {
+    require(challenges[txhash].start == true);
+    require(challenges[txhash].end == false);
     challenges[txhash].end = true;
 
     if(challenges[txhash].voteUp < challenges[txhash].voteDown) {
